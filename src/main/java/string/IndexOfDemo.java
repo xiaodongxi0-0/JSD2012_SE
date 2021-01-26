@@ -9,7 +9,7 @@ public class IndexOfDemo {
         String str ="thinking in java";
         int index =str.indexOf("in");
         System.out.println(index);//2
-        //重载 indexOf方法可以从指定位置开始检索第一次船舷的字符串的位置
+        //重载 indexOf方法可以从指定位置开始检索第一次出现的字符串的位置
         index=str.indexOf("in",2);
         System.out.println(index);//2
         index=str.indexOf("in",3);
