@@ -22,5 +22,7 @@ public class CopyDemo {
         System.out.println("复制完毕");
         src.close();
         src1.close();
+
+
     }
 }
