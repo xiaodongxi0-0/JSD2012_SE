@@ -7,6 +7,7 @@ import java.io.File;
  */
 public class MKDirsDemo {
     public static void main(String[] args) {
+
         //在当前目录下创建目录a/b/c/d/e/f
         File dir = new File("a/b/c/d/e/f");
         if (dir.exists()){
