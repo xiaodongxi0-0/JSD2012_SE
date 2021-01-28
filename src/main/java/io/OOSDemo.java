@@ -34,6 +34,7 @@ public class OOSDemo {
         oos.writeObject(person);
         System.out.println("对象输出完毕！");
         oos.close();
+
     }
 
 }
