@@ -2,6 +2,7 @@ package io;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * 使用当前类测试对象流的对象读写操作
@@ -59,6 +60,24 @@ public class Person implements Serializable {
 
     public void setOtherInfo(String[] otherInfo) {
         this.otherInfo = otherInfo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Person person = (Person) o;
+        return age == person.age &&
+                Objects.equals(name, person.name) &&
+                Objects.equals(gender, person.gender) &&
+                Arrays.equals(otherInfo, person.otherInfo);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(name, age, gender);
+        result = 31 * result + Arrays.hashCode(otherInfo);
+        return result;
     }
 
     @Override

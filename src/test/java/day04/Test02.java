@@ -30,7 +30,7 @@ public class Test02 {
 		RandomAccessFile raf = new RandomAccessFile("user.dat", "rw");
 		Scanner scanner = new Scanner(System.in);
 		System.out.println("请输入用户名！");
-		String name = scanner.nextLine();
+		String username = scanner.nextLine();
 		System.out.println("请输入新的昵称");
 		String nickname = scanner.nextLine();
 		boolean update = false;
@@ -38,8 +38,8 @@ public class Test02 {
 			raf.seek(i * 100);
 			byte[] data = new byte[32];
 			raf.read(data);
-			String username = new String(data, "utf-8").trim();
-			if (name.equals(username)){
+			String name = new String(data, "utf-8").trim();
+			if (username.equals(name)){
 				raf.seek(i*100+64);
 				data= nickname.getBytes("utf-8");
 				data= Arrays.copyOf(data,32);

@@ -25,7 +25,7 @@ import java.io.RandomAccessFile;
 public class Test01 {
 	public static void main(String[] args) throws IOException {
 		RandomAccessFile src = new RandomAccessFile("./test.txt", "r");
-		RandomAccessFile desc = new RandomAccessFile("./test_cp.txt", "r");
+		RandomAccessFile desc = new RandomAccessFile("./test_cp.txt", "rw");
 
 		int len;
 		byte[] data = new byte[1024 * 10];
