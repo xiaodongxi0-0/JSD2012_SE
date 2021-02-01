@@ -4,7 +4,7 @@ import java.io.File;
 
 public class DeleteFileDemo {
     public static void main(String[] args) {
-        //讲test.txt文件删除
+        //将test.txt文件删除
 
         //相对路径中“./”可以不写，不写默认就是从“./”开始的
         File file = new File("test.txt");
