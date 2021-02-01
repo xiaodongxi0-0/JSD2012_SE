@@ -16,8 +16,8 @@ public class Note {
     public static void main(String[] args) throws IOException {
         Scanner scan=new Scanner(System.in);
         System.out.println("请输入文件名");
-        String name1=scan.nextLine();
-        RandomAccessFile raf = new RandomAccessFile(name1+".txt","rw");
+        String name=scan.nextLine();
+        RandomAccessFile raf = new RandomAccessFile(name+".txt","rw");
 
         System.out.println("请输入内容，单独输入exet结束");
         while(true){

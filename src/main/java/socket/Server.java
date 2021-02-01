@@ -1,11 +1,9 @@
 package socket;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * 聊天室服务端
@@ -21,6 +19,8 @@ public class Server {
         如果我们把Socket比喻为电话，那么ServerSocket就相当于总机。
      */
     private ServerSocket serverSocket;
+    //用来保存所有客户端输出流的数组，用于让ClientHandler之间共享输出流广播消息使用
+    private  PrintWriter[] allOut = {};
 
     public Server(){
         try {
@@ -32,7 +32,7 @@ public class Server {
                程序关闭后在尝试启动当前程序。
              */
             System.out.println("正在启动服务端...");
-            serverSocket = new ServerSocket(8088);
+            serverSocket = new ServerSocket(8080);
             System.out.println("启动服务端完毕！");
         } catch (IOException e) {
             e.printStackTrace();
@@ -48,30 +48,15 @@ public class Server {
                方法会立即返回一个Socket实例，通过这个Socket就可以与
                连接的客户端进行交互了。
              */
-            System.out.println("等待客户端连接.....");
-            Socket socket = serverSocket.accept();
-            System.out.println("一个客户端连接了！");
-             /*
-                Socket提供的方法:
-                InputStream getInputStream()
-                通过socket获取的输入流可以读取远端计算机发送过来的数据
-             */
-            InputStream in = socket.getInputStream();
-            InputStreamReader isr = new InputStreamReader(
-                    in,"UTF-8");
-            BufferedReader br = new BufferedReader(isr);
-//            BufferedReader br = new BufferedReader(
-//                new InputStreamReader(
-//                    socket.getInputStream(),"UTF-8"
-//                )
-//            );
-
-            String line = br.readLine();
-            System.out.println("客户端说:"+line);
-
-
-
-
+            while (true) {
+                System.out.println("等待客户端连接.....");
+                Socket socket = serverSocket.accept();
+                System.out.println("一个客户端连接了！");
+                //启动一个线程处理与该客户端交互
+                Runnable handler = new ClientHandler(socket);
+                Thread t = new Thread(handler);
+                t.start();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -82,5 +67,88 @@ public class Server {
     public static void main(String[] args) {
         Server server =new Server();
         server.start();
+    }
+    private class ClientHandler implements Runnable{
+        private Socket socket;
+        private String host;//当前客户端的IP地址信息
+
+        public ClientHandler(Socket socket){
+
+            this.socket= socket;
+            //通过socket获取远端计算机地址信息
+            host = socket.getInetAddress().getHostAddress();
+        }
+        public void run(){
+            PrintWriter pw = null;
+            try {
+                 /*
+                Socket提供的方法:
+                InputStream getInputStream()
+                通过socket获取的输入流可以读取远端计算机发送过来的数据
+             */
+                InputStream in = socket.getInputStream();
+                InputStreamReader isr = new InputStreamReader(
+                        in, "UTF-8");
+                BufferedReader br = new BufferedReader(isr);
+//            BufferedReader br = new BufferedReader(
+//                new InputStreamReader(
+//                    socket.getInputStream(),"UTF-8"
+//                )
+//            );
+                //单行读出
+//            String line = br.readLine();
+//            System.out.println("客户端说:"+line);
+                //通过socket获取输出刘用于客户端发出消息
+                pw = new PrintWriter(
+                        new BufferedWriter(
+                                new OutputStreamWriter(
+                                        socket.getOutputStream(),"utf-8"
+                                )
+                        ),true
+                );
+                //将当前对应的客户端的输出流存入到共享数组allOut中，以便广播消息
+                //或者  synchronized (server.class)
+                synchronized (serverSocket) {
+                    //1先对allOut数组扩容
+                    allOut = Arrays.copyOf(allOut,allOut.length+1);
+                    //2将当前pw存入数组最后一个位置
+                    allOut[allOut.length-1]=pw;
+                }
+
+                System.out.println(host+"上线了！当前在线人数："+allOut.length);
+
+                String line;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(host+"说：" + line);
+                    //将消息发送给所有客户端
+
+                    for (int i=0 ;i<allOut.length;i++) {
+                        allOut[i].println(host+"说："+line);
+                    }
+                }
+            }catch (IOException e ){
+                e.printStackTrace();
+            }finally {
+                //处理该客户端断开链接后的操作
+                //将对应当前客户端的输出流从共享数组allOut中删除
+                synchronized (serverSocket) {
+                    for (int i =0;i<allOut.length;i++){
+                        if (allOut[i]==pw){
+                            allOut[i]=allOut[allOut.length-1];
+                            allOut = Arrays.copyOf(allOut,allOut.length-1);
+                            break;
+                        }
+                    }
+                }
+                System.out.println(host+"下线了！当前在线人数："+allOut.length);
+                try{
+                    //最终不再通讯时要关闭socket.(相当于挂电话)
+                    //socket关闭后，通过socket获取的输入流与输出流就自动关闭了
+                    socket.close();
+                }catch (IOException e ){
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

@@ -18,7 +18,7 @@ public class ListFilesDemo2 {
          */
         File dir = new File(".");
         if (dir.isDirectory()){
-            FileFilter filter = new FileFilter() {
+             FileFilter filter = new FileFilter() {//FileFilter
                 @Override
                 public boolean accept(File file) {
                     String name = file.getName();
