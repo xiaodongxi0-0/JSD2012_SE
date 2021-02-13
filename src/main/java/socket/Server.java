@@ -3,10 +3,7 @@ package socket;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * 聊天室服务端
@@ -24,8 +21,10 @@ public class Server {
     private ServerSocket serverSocket;
     //用来保存所有客户端输出流的数组，用于让ClientHandler之间共享输出流广播消息使用
 //    private PrintWriter[] allOut = {};
-    private Collection<PrintWriter> allOut = new ArrayList<>();
-
+    //ArrayList不是并发安全的集合
+//    private Collection<PrintWriter> allOut = new ArrayList<>();
+//基于ArrayList创建一个并发安全的集合存放所有输出流
+    private List<PrintWriter> allOut = Collections.synchronizedList(new ArrayList<>());
     public Server(){
         try {
             /*
@@ -125,22 +124,25 @@ public class Server {
 
                 String line;
                 while ((line = br.readLine()) != null) {
+                    String message = line;
                     System.out.println(host+"说：" + line);
                     //将消息发送给所有客户端
 
 //                    for (int i=0 ;i<allOut.length;i++) {
 //                        allOut[i].println(host+"说："+line);
+////                    }
+//                    for (PrintWriter pw1:allOut){
+//                        pw1.println(host+"说："+line);
 //                    }
-                    for (PrintWriter pw1:allOut){
-                        pw1.println(host+"说："+line);
-                    }
+                    //当使用并发安全的集合时，遍历要采取foreach方法
+                    allOut.forEach(o->o.println(host+"说："+message));
                 }
             }catch (IOException e ){
                 e.printStackTrace();
             }finally {
                 //处理该客户端断开链接后的操作
                 //将对应当前客户端的输出流从共享数组allOut中删除
-                synchronized (serverSocket) {
+ //               synchronized (serverSocket) {
 //                    for (int i =0;i<allOut.length;i++){
 //                        if (allOut[i]==pw){
 //                            allOut[i]=allOut[allOut.length-1];
@@ -156,7 +158,8 @@ public class Server {
 //                        }
 //                    }
                     //可以直接remove删掉，不用遍历
-                    allOut.remove(pw);
+ //                   allOut.remove(pw);
+                allOut.remove(pw);//如果当前集合是并发安全的集合，则不需要同步块控制了。
                 }
 //                System.out.println(host+"下线了！当前在线人数："+allOut.length);
                 System.out.println(host+"下线了！当前在线人数："+allOut.size());
@@ -170,4 +173,4 @@ public class Server {
             }
         }
     }
-}
+
