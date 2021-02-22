@@ -1,11 +1,9 @@
 package socket;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.*;
 
 /**
  * 聊天室服务端
@@ -21,7 +19,12 @@ public class Server {
         如果我们把Socket比喻为电话，那么ServerSocket就相当于总机。
      */
     private ServerSocket serverSocket;
-
+    //用来保存所有客户端输出流的数组，用于让ClientHandler之间共享输出流广播消息使用
+//    private PrintWriter[] allOut = {};
+    //ArrayList不是并发安全的集合
+//    private Collection<PrintWriter> allOut = new ArrayList<>();
+//基于ArrayList创建一个并发安全的集合存放所有输出流
+    private List<PrintWriter> allOut = Collections.synchronizedList(new ArrayList<>());
     public Server(){
         try {
             /*
@@ -32,7 +35,7 @@ public class Server {
                程序关闭后在尝试启动当前程序。
              */
             System.out.println("正在启动服务端...");
-            serverSocket = new ServerSocket(8088);
+            serverSocket = new ServerSocket(8080);
             System.out.println("启动服务端完毕！");
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,12 +73,16 @@ public class Server {
     }
     private class ClientHandler implements Runnable{
         private Socket socket;
+        private String host;//当前客户端的IP地址信息
 
         public ClientHandler(Socket socket){
+
             this.socket= socket;
+            //通过socket获取远端计算机地址信息
+            host = socket.getInetAddress().getHostAddress();
         }
         public void run(){
-
+            PrintWriter pw = null;
             try {
                  /*
                 Socket提供的方法:
@@ -94,13 +101,76 @@ public class Server {
                 //单行读出
 //            String line = br.readLine();
 //            System.out.println("客户端说:"+line);
+                //通过socket获取输出刘用于客户端发出消息
+                pw = new PrintWriter(
+                        new BufferedWriter(
+                                new OutputStreamWriter(
+                                        socket.getOutputStream(),"utf-8"
+                                )
+                        ),true
+                );
+                //将当前对应的客户端的输出流存入到共享数组allOut中，以便广播消息
+                //或者  synchronized (server.class)
+                synchronized (serverSocket) {
+                    //1先对allOut数组扩容
+//                    allOut = Arrays.copyOf(allOut,allOut.length+1);
+//                    //2将当前pw存入数组最后一个位置
+//                    allOut[allOut.length-1]=pw;
+                    allOut.add(pw);
+                }
+
+//                System.out.println(host+"上线了！当前在线人数："+allOut.length);
+                System.out.println(host+"上线了！当前在线人数："+allOut.size());
+
                 String line;
                 while ((line = br.readLine()) != null) {
-                    System.out.println("客户端说：" + line);
+                    String message = line;
+                    System.out.println(host+"说：" + line);
+                    //将消息发送给所有客户端
+
+//                    for (int i=0 ;i<allOut.length;i++) {
+//                        allOut[i].println(host+"说："+line);
+////                    }
+//                    for (PrintWriter pw1:allOut){
+//                        pw1.println(host+"说："+line);
+//                    }
+                    //当使用并发安全的集合时，遍历要采取foreach方法
+                    allOut.forEach(o->o.println(host+"说："+message));
                 }
             }catch (IOException e ){
                 e.printStackTrace();
+            }finally {
+                //处理该客户端断开链接后的操作
+                //将对应当前客户端的输出流从共享数组allOut中删除
+ //               synchronized (serverSocket) {
+//                    for (int i =0;i<allOut.length;i++){
+//                        if (allOut[i]==pw){
+//                            allOut[i]=allOut[allOut.length-1];
+//                            allOut = Arrays.copyOf(allOut,allOut.length-1);
+//                            break;
+//                        }
+//                    }
+//                    Iterator<PrintWriter> it = allOut.iterator();
+//                    while (it.hasNext()){
+//                        PrintWriter pw1=it.next();
+//                        if (pw1.equals(pw)){
+//                            it.remove();
+//                        }
+//                    }
+                    //可以直接remove删掉，不用遍历
+ //                   allOut.remove(pw);
+                allOut.remove(pw);//如果当前集合是并发安全的集合，则不需要同步块控制了。
+                }
+//                System.out.println(host+"下线了！当前在线人数："+allOut.length);
+                System.out.println(host+"下线了！当前在线人数："+allOut.size());
+                try{
+                    //最终不再通讯时要关闭socket.(相当于挂电话)
+                    //socket关闭后，通过socket获取的输入流与输出流就自动关闭了
+                    socket.close();
+                }catch (IOException e ){
+                    e.printStackTrace();
+                }
             }
         }
     }
-}
+

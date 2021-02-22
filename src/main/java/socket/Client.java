@@ -30,7 +30,7 @@ public class Client {
             System.out.println("正在链接服务端....");
             //localhost表示本机IP
             //实例化的过程就是连接过程，若连接服务端失败会抛出异常
-            socket = new Socket("localhost",8088);
+            socket = new Socket("localhost",8080);
             System.out.println("与服务器建立连接！");
         } catch (IOException e) {
             e.printStackTrace();
@@ -40,6 +40,11 @@ public class Client {
      * 客户端开始工作的方法
      */
     public void  start(){
+        //先启动读取服务端发送过来消息的线程
+        ServerHandler handler = new ServerHandler();
+        Thread t = new Thread(handler);
+        t.setDaemon(true);
+        t.start();
         try (
             /*
               Socket提供的方法
@@ -61,6 +66,7 @@ public class Client {
                             )
                     ),true  //自动行刷新
             );
+
         ){
                 //通过输出流给服务端发送一句话
                 //pw.println("你好服务端!");
@@ -72,6 +78,7 @@ public class Client {
                     break;
                 }
                 pw.println(line);
+
             }
 
 
@@ -94,6 +101,30 @@ public class Client {
         Client client = new Client();
         client.start();
     }
+
+    //该线程负责读取服务端发送过来的消息
+    private class ServerHandler implements Runnable{
+        public void run(){
+            try(
+                    BufferedReader br = new BufferedReader(
+                    new InputStreamReader(
+                            socket.getInputStream(),"utf-8"
+                         )
+                    );
+            ) {
+                String line;
+                //读取服务端发送过来的每一行字符串并输出到客户端的控制台上
+                while ((line=br.readLine())!=null){
+                    System.out.println(line);
+
+                }
+
+            } catch (IOException e) {
+
+            }
+        }
+    }
+
     }
 
 
