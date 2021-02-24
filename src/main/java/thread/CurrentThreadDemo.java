@@ -20,7 +20,7 @@ public class CurrentThreadDemo {
                 Thread t= Thread.currentThread();
                 System.out.println("自定义线程："+t);
                 dosome();
-                for (int i =0;i<1000;i++){
+                for (int i =0;i<100;i++){
                     System.out.println(t+"循环"+i+"次");
                 }
                 System.out.println(t+"线程结束！");
@@ -28,7 +28,7 @@ public class CurrentThreadDemo {
 
         };
         t.start();
-        for (int i =0;i<1000;i++){
+        for (int i =0;i<100;i++){
             System.out.println(main+"循环"+i+"次");
         }
         System.out.println("main方法执行完毕，主线程结束。");

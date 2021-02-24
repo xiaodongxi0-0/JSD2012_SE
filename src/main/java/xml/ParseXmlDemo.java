@@ -24,7 +24,7 @@ public class ParseXmlDemo {
             //获取根标签<list>
 
             /*
-              其中提供很多火气对应元素相关信息的 方法，常用的有：
+              其中提供很多获取对应元素相关信息的 方法，常用的有：
               String getName()
               获取元素名，标签的名字
 
@@ -49,7 +49,36 @@ public class ParseXmlDemo {
                 String ename = nameEle.getText();
                 System.out.println(ename);
 
+                //获取员工年龄
+                Element ageEle = empEle.element("age");
+                int age = Integer.parseInt(ageEle.getText());
+
+                //获取性别
+//                String gender = empEle.element("gender").getText();
+                String gender = empEle.elementText("gender");
+
+                //获取工资
+                int salary = Integer.parseInt(empEle.elementText("salary"));
+
+                //获取<emp>标签的属性：id
+                //                Attribute attr = empEle.attribute("id");
+//                int id = Integer.parseInt(attr.getValue());
+
+//                int id = Integer.parseInt(
+//                        empEle.attribute("id").getValue()
+//                );
+
+                int id = Integer.parseInt(
+                        empEle.attributeValue("id")
+                );
+
+
+                System.out.println(ename+","+age+","+gender+","+salary);
+
+
             }
+
+
 
         }catch(Exception e ){
             e.printStackTrace();
