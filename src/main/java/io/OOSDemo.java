@@ -26,9 +26,9 @@ public class OOSDemo {
           oid writeObject(Object obj)
           该方法可以将给定的对象按照其结构转化为一组字节后写出。
           需要注意，该方法要求写出的对象必须实现了序列化结构，
-          否则会爆出异常：java,io,NotSerializableException
+          否则会抛出异常：java,io,NotSerializableException
 
-          将一个对象暗号其结构转换为一组字节的过程称为对象序列化
+          将一个对象按好其结构转换为一组字节的过程称为对象序列化
           反之则成为对象反序列化
          */
         oos.writeObject(person);

@@ -1,9 +1,6 @@
 package io;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * 使用文件输入流读取文件数据
@@ -24,6 +21,7 @@ public class FISDemo {
 
 
         fis.close();
+
 
     }
 }

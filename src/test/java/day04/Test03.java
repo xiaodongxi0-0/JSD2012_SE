@@ -32,10 +32,10 @@ public class Test03 {
             raf.seek(i*100);
             byte[] data = new byte[32];
             raf.read(data);
-            String name =new String(data,"utf-8");
+            String name =new String(data,"utf-8").trim();
             if (username.equals(name)){
                 raf.read(data);
-                String passw =new String(data,"utf-8");
+                String passw =new String(data,"utf-8").trim();
                 if (password.equals(passw)){
                     System.out.println("登录成功！");
                     dl=true;
